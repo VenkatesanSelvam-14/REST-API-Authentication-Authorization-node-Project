@@ -1,19 +1,19 @@
 const {DataTypes}= require('sequelize');
 const CONNECTDB = require('../config/config');
-const User = CONNECTDB.define('User', {
-    user_id: {
+
+
+const pass = CONNECTDB.define('Pass', {
+    username: {
         type: DataTypes.STRING, 
-        allowNull: true,
-        primaryKey: true
-       
+        allowNull:false
       },
-      fullname: {
+      secretpassword: {
         type: DataTypes.STRING,
-        allowNull: false
+        // allowNull:false
       }
   },{
    
-    tableName: 'usertable',
+    tableName: 'authuser',
     timestamps: false 
   }
   );
@@ -23,9 +23,4 @@ const User = CONNECTDB.define('User', {
 //     console.log('All models were synchronized successfully.');
 //   })();
 
-  module.exports=User;
-
-
-  
-
-    
+  module.exports=pass;

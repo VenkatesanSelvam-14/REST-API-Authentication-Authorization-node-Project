@@ -4,6 +4,9 @@ const {op}= require('sequelize');
 
 const posts = require('../auth/post');
 
+
+const user = require('../auth/auth');
+
 var bodyParser = require('body-parser');  
  router.use(bodyParser.json());
  router.use(bodyParser.urlencoded({ extended: true }))
@@ -14,64 +17,122 @@ var bodyParser = require('body-parser');
     res.json(users);
 });
 
+
  
 router.get('/id', async (req, res) => {
     const { user_id } = req.body;
-    const users = await posts.findOne({ where: {[Op.or]: [{ user_id: user_id }, { post_id: user_id}]  }});
-    res.json(users);
+
+
+
+    str=user_id.substring(0,8);
+    console.log(str);
+
+
+    try{
+    if(str=="user_id_"){
+      
+      
+      user.hasMany(posts,{foreignKey:"user_id"});
+      posts.belongsTo(user,{foreignKey:"user_id"});
+
+
+      const result= await posts.findAll({where:{user_id : user_id},include: [{
+        model: user,
+        attributes: ['fullname'],
+        required: true
+      }]})
+      
+      res.json(result)
+      
+      
+    }
+    
+    else if(str=="post_id_")
+    {
+    const postId = await posts.findOne({ where: {post_id:user_id}});
+    res.json(postId);
+    }
+
+    else{
+      res.json("invalid id");
+    }
+    }
+
+    catch (err){
+      console.error('Error inserting data:', err);
+    }
 });
 
 
 router.post('/',async (req,res)=>{
 
-    const { fullname } = req.body;
+    const { user_id,posters } = req.body;
 
-    try {
+    const {count , row}=await user.findAndCountAll({where: {user_id:user_id}});
+
+    if (count>0)
+    {
+      try {
               
-              const newUser = await posts.create({
-                
-                fullname
-              });
+        const newUser = await posts.create({
+          // post_id,
+          user_id,
+          posters
+        });
 
-              if ( !fullname) {
-                return res.status(400).json({ error: 'user_id and fullname are required fields' });
-              }
+        if (!user_id||!posters) {
+          return res.status(400).json({ error: 'user_id and fullname are required fields' });
+        }
 
-          res.send(newUser);
-              console.log('User created successfully:', newUser.toJSON());
-            } catch (error) {
-              console.error('Error inserting data:', error);
-            } finally {
-             
-              // await Sequelize.close();
-            }
+    res.send(newUser);
+        console.log('User created successfully:', newUser.toJSON());
+      } catch (error) {
+        console.error('Error inserting data:', error);
+      } finally {
+       
+        // await Sequelize.close();
+      }
+    }
+
+    else{
+      res.json("user id doesnot exists")
+    }
    
 });
 
 
     
 
-router.put('/id', async(req, res) => {
-    const { post_id ,fullname} = req.body;
-    const update = await posts.update({posters:fullname},{
+router.put('/', async(req, res) => {
+    const { post_id ,user_id,fullname} = req.body;
+    try{
+     await posts.update({user_id:user_id,posters:fullname},{
             where:{
                 post_id:post_id
             }
         }) 
   
         res.json('updated successfully');
+      }
+      catch (err){
+        console.error(err);
+      }
        
   });
   
-router.delete('/id', async(req, res) => {
+router.delete('/', async(req, res) => {
     const { post_id } = req.body;
-    const deleted = await posts.destroy({
+     try{ await posts.destroy({
         where:{
             post_id:post_id
         }
     }) 
 
     res.json(deleted);
+  }
+  catch(err){
+    console.error(err);
+  }
 });
 
 module.exports = router;

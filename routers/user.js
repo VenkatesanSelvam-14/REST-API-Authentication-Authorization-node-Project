@@ -12,6 +12,7 @@ var bodyParser = require('body-parser');
  router.get('/', async(req, res) => {
     const  users=await user.findAll();
     res.json(users);
+
 });
 
  
@@ -28,8 +29,9 @@ router.post('/',async (req,res)=>{
 
     try {
               
+      
               const newUser = await user.create({
-                
+               
                 fullname
               });
 
@@ -50,28 +52,36 @@ router.post('/',async (req,res)=>{
 
 
 
-router.put('/id', async(req, res) => {
+router.put('/', async(req, res) => {
   const { user_id ,fullname} = req.body;
-  const update = await user.update({fullname:fullname},{
+   try{await user.update({fullname:fullname},{
           where:{
               user_id:user_id
           }
       }) 
 
       res.json('updated successfully');
+    }
+
+      catch(err){
+        console.error(err);
+      }
       
 });
 
-router.delete('/id', async(req, res) => {
+router.delete('/', async(req, res) => {
   const { user_id } = req.body;
-  const deleted = await user.destroy({
+  try{await user.destroy({
       where:{
           user_id:user_id
       }
   }) 
 
   res.json('deleted successfully');
-  res.json(deleted);
+}
+  catch(err){
+    console.error(err);
+  }
 });
 
 module.exports = router;
